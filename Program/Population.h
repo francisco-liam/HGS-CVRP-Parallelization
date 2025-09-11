@@ -26,6 +26,7 @@ SOFTWARE.*/
 #include "Individual.h"
 #include "LocalSearch.h"
 #include "Split.h"
+#include <mutex>
 
 typedef std::vector <Individual*> SubPopulation ;
 
@@ -33,6 +34,7 @@ class Population
 {
    private:
 
+   std::recursive_mutex popMutex;               // Mutex for thread safety
    Params & params ;							// Problem parameters
    Split & split;								// Split algorithm
    LocalSearch & localSearch;					// Local search structure

@@ -25,10 +25,26 @@ SOFTWARE.*/
 
 #include "Population.h"
 #include "Individual.h"
+#include <thread>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 
 class Genetic
 {
 public:
+
+	// Shared atomic counters and synchronization primitives for parallelism
+	static std::atomic<int> nbIter;
+	static std::atomic<int> nbIterNonProd;
+	static std::atomic<bool> resetInProgress;
+	static std::mutex resetMutex;
+	static std::condition_variable resetCV;
+
+	// Barrier for coordinated reset
+	static std::atomic<int> resetBarrierCount;
+	static std::mutex resetBarrierMutex;
+	static std::condition_variable resetBarrierCV;
 
 	Params & params;				// Problem parameters
 	Split split;					// Split algorithm
@@ -37,13 +53,24 @@ public:
 	Individual offspring;			// First individual to be used as input for the crossover
 
 	// OX Crossover
-	void crossoverOX(Individual & result, const Individual & parent1, const Individual & parent2);
+	static void crossoverOX(Individual & result, const Individual & parent1, const Individual & parent2, Split& split, std::minstd_rand& rng, int nbClients);
 
     // Running the genetic algorithm until maxIterNonProd consecutive iterations or a time limit
     void run() ;
 
 	// Constructor
 	Genetic(Params & params);
+
+private:
+       // Worker thread function for parallel HGS
+       static void workerThread(
+	       Params& params,
+	       Population& population,
+	       int threadId,
+	       unsigned int baseSeed,
+	       std::atomic<bool>& terminateFlag,
+	       std::string* exceptionMsgPtr = nullptr
+       );
 };
 
 #endif

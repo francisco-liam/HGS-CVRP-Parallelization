@@ -19,6 +19,7 @@ void Population::generatePopulation()
 
 bool Population::addIndividual(const Individual & indiv, bool updateFeasible)
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	if (updateFeasible)
 	{
 		listFeasibilityLoad.push_back(indiv.eval.capacityExcess < MY_EPSILON);
@@ -138,6 +139,7 @@ void Population::restart()
 
 void Population::managePenalties()
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	// Setting some bounds [0.1,100000] to the penalty values for safety
 	double fractionFeasibleLoad = (double)std::count(listFeasibilityLoad.begin(), listFeasibilityLoad.end(), true) / (double)listFeasibilityLoad.size();
 	if (fractionFeasibleLoad < params.ap.targetFeasible - 0.05 && params.penaltyCapacity < 100000.)
@@ -175,6 +177,7 @@ void Population::managePenalties()
 
 const Individual & Population::getBinaryTournament ()
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	// Picking two individuals with uniform distribution over the union of the feasible and infeasible subpopulations
 	std::uniform_int_distribution<> distr(0, feasibleSubpop.size() + infeasibleSubpop.size() - 1);
 	int place1 = distr(params.ran);
@@ -191,24 +194,28 @@ const Individual & Population::getBinaryTournament ()
 
 const Individual * Population::getBestFeasible ()
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	if (!feasibleSubpop.empty()) return feasibleSubpop[0] ;
 	else return NULL ;
 }
 
 const Individual * Population::getBestInfeasible ()
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	if (!infeasibleSubpop.empty()) return infeasibleSubpop[0] ;
 	else return NULL ;
 }
 
 const Individual * Population::getBestFound()
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	if (bestSolutionOverall.eval.penalizedCost < 1.e29) return &bestSolutionOverall;
 	else return NULL;
 }
 
 void Population::printState(int nbIter, int nbIterNoImprovement)
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	if (params.verbose)
 	{
 		std::printf("It %6d %6d | T(s) %.2f", nbIter, nbIterNoImprovement, (double)(clock()-params.startTime)/(double)CLOCKS_PER_SEC);
@@ -252,6 +259,7 @@ double Population::averageBrokenPairsDistanceClosest(const Individual & indiv, i
 
 double Population::getDiversity(const SubPopulation & pop)
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	double average = 0.;
 	int size = std::min<int>(params.ap.mu, pop.size()); // Only monitoring the "mu" better solutions to avoid too much noise in the measurements
 	for (int i = 0; i < size; i++) average += averageBrokenPairsDistanceClosest(*pop[i],size);
@@ -261,6 +269,7 @@ double Population::getDiversity(const SubPopulation & pop)
 
 double Population::getAverageCost(const SubPopulation & pop)
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	double average = 0.;
 	int size = std::min<int>(params.ap.mu, pop.size()); // Only monitoring the "mu" better solutions to avoid too much noise in the measurements
 	for (int i = 0; i < size; i++) average += pop[i]->eval.penalizedCost;
@@ -270,6 +279,7 @@ double Population::getAverageCost(const SubPopulation & pop)
 
 void Population::exportSearchProgress(std::string fileName, std::string instanceName)
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	std::ofstream myfile(fileName);
 	for (std::pair<clock_t, double> state : searchProgress)
 		myfile << instanceName << ";" << params.ap.seed << ";" << state.second << ";" << (double)state.first / (double)CLOCKS_PER_SEC << std::endl;
@@ -277,6 +287,7 @@ void Population::exportSearchProgress(std::string fileName, std::string instance
 
 void Population::exportCVRPLibFormat(const Individual & indiv, std::string fileName)
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	std::ofstream myfile(fileName);
 	if (myfile.is_open())
 	{

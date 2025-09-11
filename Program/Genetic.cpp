@@ -1,74 +1,195 @@
+#include <thread>
+#include <vector>
+#include <random>
 #include "Genetic.h"
+
+// Worker thread function for parallel HGS
+// Exception-safe worker thread with global termination
+void Genetic::workerThread(
+	Params& params,
+	Population& population,
+	int threadId,
+	unsigned int baseSeed,
+	std::atomic<bool>& terminateFlag,
+	std::string* exceptionMsgPtr
+) {
+	try {
+		// Thread-local Split and LocalSearch
+		Split split(params);
+		LocalSearch localSearch(params);
+		// Thread-local RNG
+		std::minstd_rand rng(baseSeed + threadId);
+
+		// Main worker loop (termination condition to be set by caller)
+		int penaltyInterval = params.ap.nbIterPenaltyManagement > 0 ? params.ap.nbIterPenaltyManagement : 100;
+		int traceInterval = params.ap.nbIterTraces > 0 ? params.ap.nbIterTraces : 100;
+		int resetInterval = params.ap.nbIter > 0 ? params.ap.nbIter : 1000;
+
+		//int numThreads = std::thread::hardware_concurrency();
+		//if (numThreads < 1) numThreads = 2;
+		
+		int numThreads = 2;
+
+		while (!terminateFlag.load()) {
+			// Get current iteration at start of loop
+			int iter = Genetic::nbIter.fetch_add(1);
+
+			// Selection (copy parents immediately to avoid use-after-free)
+			Individual parent1(population.getBinaryTournament());
+			Individual parent2(population.getBinaryTournament());
+			Individual offspring(params);
+
+			// Crossover (OX) -- now thread-safe
+			Genetic::crossoverOX(offspring, parent1, parent2, split, rng, params.nbClients);
+
+			// Local search
+			localSearch.run(offspring, params.penaltyCapacity, params.penaltyDuration);
+			bool isNewBest = population.addIndividual(offspring, true);
+			if (!offspring.eval.isFeasible && rng() % 2 == 0) {
+				localSearch.run(offspring, params.penaltyCapacity * 10., params.penaltyDuration * 10.);
+				if (offspring.eval.isFeasible) isNewBest = (population.addIndividual(offspring, false) || isNewBest);
+			}
+
+			// Update non-productive iteration counter
+			if (isNewBest) {
+				Genetic::nbIterNonProd.store(0);
+			} else {
+				Genetic::nbIterNonProd.fetch_add(1);
+			}
+
+			// Penalty management (only one thread does it)
+			if (iter % penaltyInterval == 0) {
+				bool expected = false;
+				if (!Genetic::resetInProgress.load() && Genetic::resetInProgress.compare_exchange_strong(expected, true)) {
+					population.managePenalties();
+					Genetic::resetInProgress.store(false);
+				}
+			}
+
+			// Progress reporting (only one thread does it, but not tied to threadId)
+			static std::atomic<int> lastReportedIter{0};
+			if (iter % traceInterval == 0) {
+				int expected = lastReportedIter.load();
+				if (iter > expected && lastReportedIter.compare_exchange_strong(expected, iter)) {
+					population.printState(iter, Genetic::nbIterNonProd.load());
+				}
+			}
+
+			// Reset logic (barrier: all threads must reach this point before reset)
+			if (Genetic::nbIterNonProd.load() >= resetInterval) {
+				// Phase 1: Barrier - all threads increment and wait
+				int arrived = Genetic::resetBarrierCount.fetch_add(1) + 1;
+				if (arrived < numThreads) {
+					std::unique_lock<std::mutex> lock(Genetic::resetBarrierMutex);
+					Genetic::resetBarrierCV.wait(lock, [&]{ return Genetic::resetBarrierCount.load() >= numThreads; });
+				}
+				// Phase 2: Only one thread performs the reset
+				if (arrived == numThreads) {
+					std::unique_lock<std::mutex> lock(Genetic::resetMutex);
+					bool expected = false;
+					if (!Genetic::resetInProgress.load() && Genetic::resetInProgress.compare_exchange_strong(expected, true)) {
+						population.restart();
+						Genetic::nbIterNonProd.store(0);
+						Genetic::resetInProgress.store(false);
+						Genetic::resetCV.notify_all();
+					}
+					// Release all threads from the barrier
+					Genetic::resetBarrierCV.notify_all();
+					Genetic::resetBarrierCount.store(0);
+				} else {
+					// Wait for reset to complete and barrier to be released
+					std::unique_lock<std::mutex> lock(Genetic::resetBarrierMutex);
+					Genetic::resetBarrierCV.wait(lock, [&]{ return Genetic::resetBarrierCount.load() == 0; });
+				}
+			}
+		}
+	} catch (const std::exception& ex) {
+		terminateFlag.store(true);
+		if (exceptionMsgPtr) {
+			*exceptionMsgPtr = ex.what();
+		}
+	} catch (...) {
+		terminateFlag.store(true);
+		if (exceptionMsgPtr) {
+			*exceptionMsgPtr = "Unknown exception in worker thread.";
+		}
+	}
+}
 
 void Genetic::run()
 {	
-	/* INITIAL POPULATION */
+	// INITIAL POPULATION
 	population.generatePopulation();
 
-	int nbIter;
-	int nbIterNonProd = 1;
-	if (params.verbose) std::cout << "----- STARTING GENETIC ALGORITHM" << std::endl;
-	for (nbIter = 0 ; nbIterNonProd <= params.ap.nbIter && (params.ap.timeLimit == 0 || (double)(clock()-params.startTime)/(double)CLOCKS_PER_SEC < params.ap.timeLimit) ; nbIter++)
-	{	
-		/* SELECTION AND CROSSOVER */
-		crossoverOX(offspring, population.getBinaryTournament(),population.getBinaryTournament());
+	if (params.verbose) std::cout << "----- STARTING PARALLEL GENETIC ALGORITHM" << std::endl;
 
-		/* LOCAL SEARCH */
-		localSearch.run(offspring, params.penaltyCapacity, params.penaltyDuration);
-		bool isNewBest = population.addIndividual(offspring,true);
-		if (!offspring.eval.isFeasible && params.ran()%2 == 0) // Repair half of the solutions in case of infeasibility
-		{
-			localSearch.run(offspring, params.penaltyCapacity*10., params.penaltyDuration*10.);
-			if (offspring.eval.isFeasible) isNewBest = (population.addIndividual(offspring,false) || isNewBest);
-		}
+	std::atomic<bool> terminateFlag(false);
+	//int numThreads = std::thread::hardware_concurrency();
+	//if (numThreads < 1) numThreads = 2; // fallback
 
-		/* TRACKING THE NUMBER OF ITERATIONS SINCE LAST SOLUTION IMPROVEMENT */
-		if (isNewBest) nbIterNonProd = 1;
-		else nbIterNonProd ++ ;
+	int numThreads = 2;
 
-		/* DIVERSIFICATION, PENALTY MANAGEMENT AND TRACES */
-		if (nbIter % params.ap.nbIterPenaltyManagement == 0) population.managePenalties();
-		if (nbIter % params.ap.nbIterTraces == 0) population.printState(nbIter, nbIterNonProd);
+	unsigned int baseSeed = params.ap.seed;
+	std::vector<std::thread> workers;
+	std::vector<std::string> exceptionMsgs(numThreads);
 
-		/* FOR TESTS INVOLVING SUCCESSIVE RUNS UNTIL A TIME LIMIT: WE RESET THE ALGORITHM/POPULATION EACH TIME maxIterNonProd IS ATTAINED*/
-		if (params.ap.timeLimit != 0 && nbIterNonProd == params.ap.nbIter)
-		{
-			population.restart();
-			nbIterNonProd = 1;
+	// Launch worker threads
+	for (int i = 0; i < numThreads; ++i) {
+		workers.emplace_back(workerThread, std::ref(params), std::ref(population), i, baseSeed, std::ref(terminateFlag), &exceptionMsgs[i]);
+	}
+
+	// Monitor progress and termination
+	clock_t startTime = clock();
+	double timeLimit = params.ap.timeLimit;
+	while (!terminateFlag.load() && (timeLimit == 0 || (double)(clock() - startTime) / (double)CLOCKS_PER_SEC < timeLimit)) {
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		// Optionally: print progress, check for convergence, etc.
+		// population.printState(...); // Uncomment and add arguments if desired
+	}
+	terminateFlag = true;
+
+	// Join all threads
+	for (auto& t : workers) t.join();
+
+	// Report any exception from worker threads
+	for (int i = 0; i < numThreads; ++i) {
+		if (!exceptionMsgs[i].empty()) {
+			std::cerr << "Exception in worker thread " << i << ": " << exceptionMsgs[i] << std::endl;
 		}
 	}
-	if (params.verbose) std::cout << "----- GENETIC ALGORITHM FINISHED AFTER " << nbIter << " ITERATIONS. TIME SPENT: " << (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC << std::endl;
+
+    if (params.verbose) std::cout << "----- PARALLEL GENETIC ALGORITHM FINISHED. TIME SPENT: " << (double)(clock() - startTime) / (double)CLOCKS_PER_SEC << std::endl;
 }
 
-void Genetic::crossoverOX(Individual & result, const Individual & parent1, const Individual & parent2)
+void Genetic::crossoverOX(Individual & result, const Individual & parent1, const Individual & parent2, Split& split, std::minstd_rand& rng, int nbClients)
 {
 	// Frequency table to track the customers which have been already inserted
-	std::vector <bool> freqClient = std::vector <bool> (params.nbClients + 1, false);
+	std::vector <bool> freqClient = std::vector <bool> (nbClients + 1, false);
 
 	// Picking the beginning and end of the crossover zone
-	std::uniform_int_distribution<> distr(0, params.nbClients-1);
-	int start = distr(params.ran);
-	int end = distr(params.ran);
+	std::uniform_int_distribution<> distr(0, nbClients-1);
+	int start = distr(rng);
+	int end = distr(rng);
 
 	// Avoid that start and end coincide by accident
-	while (end == start) end = distr(params.ran);
+	while (end == start) end = distr(rng);
 
 	// Copy from start to end
 	int j = start;
-	while (j % params.nbClients != (end + 1) % params.nbClients)
+	while (j % nbClients != (end + 1) % nbClients)
 	{
-		result.chromT[j % params.nbClients] = parent1.chromT[j % params.nbClients];
-		freqClient[result.chromT[j % params.nbClients]] = true;
+		result.chromT[j % nbClients] = parent1.chromT[j % nbClients];
+		freqClient[result.chromT[j % nbClients]] = true;
 		j++;
 	}
 
 	// Fill the remaining elements in the order given by the second parent
-	for (int i = 1; i <= params.nbClients; i++)
+	for (int i = 1; i <= nbClients; i++)
 	{
-		int temp = parent2.chromT[(end + i) % params.nbClients];
+		int temp = parent2.chromT[(end + i) % nbClients];
 		if (freqClient[temp] == false)
 		{
-			result.chromT[j % params.nbClients] = temp;
+			result.chromT[j % nbClients] = temp;
 			j++;
 		}
 	}
@@ -83,4 +204,16 @@ Genetic::Genetic(Params & params) :
 	localSearch(params),
 	population(params,this->split,this->localSearch),
 	offspring(params){}
+
+// Static atomic counters and synchronization primitives for parallelism
+std::atomic<int> Genetic::nbIter{1};
+std::atomic<int> Genetic::nbIterNonProd{0};
+std::atomic<bool> Genetic::resetInProgress{false};
+std::mutex Genetic::resetMutex;
+std::condition_variable Genetic::resetCV;
+
+// Barrier for coordinated reset
+std::atomic<int> Genetic::resetBarrierCount{0};
+std::mutex Genetic::resetBarrierMutex;
+std::condition_variable Genetic::resetBarrierCV;
 
