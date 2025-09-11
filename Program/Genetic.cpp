@@ -77,6 +77,11 @@ void Genetic::workerThread(
 
 			// Reset logic (barrier: all threads must reach this point before reset)
 			if (Genetic::nbIterNonProd.load() >= resetInterval) {
+		       // Early termination: if timeLimit == 0 and nbIterNonProd >= params.ap.nbIter, set terminateFlag
+		       if (params.ap.timeLimit == 0 && Genetic::nbIterNonProd.load() >= params.ap.nbIter) {
+			       terminateFlag.store(true);
+			       break;
+		       }
 				// Phase 1: Barrier - all threads increment and wait
 				int arrived = Genetic::resetBarrierCount.fetch_add(1) + 1;
 				if (arrived < numThreads) {
