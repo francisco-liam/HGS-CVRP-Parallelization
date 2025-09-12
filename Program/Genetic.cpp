@@ -179,7 +179,11 @@ void Genetic::run()
 		}
 	}
 
-    if (params.verbose) std::cout << "----- PARALLEL GENETIC ALGORITHM FINISHED. TIME SPENT: " << std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() << std::endl;
+    if (params.verbose) {
+		using namespace std::chrono;
+		double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
+		std::cout << "----- GENETIC ALGORITHM FINISHED AFTER " << nbIter << " ITERATIONS. TIME SPENT: " << wallTime << std::endl;
+	}
 }
 
 void Genetic::crossoverOX(Individual & result, const Individual & parent1, const Individual & parent2, Split& split, std::minstd_rand& rng, int nbClients)
