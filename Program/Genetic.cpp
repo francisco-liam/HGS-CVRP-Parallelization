@@ -2,6 +2,7 @@
 #include <thread>
 #include <vector>
 #include <random>
+#include <chrono>
 #include "Genetic.h"
 
 // Global pointer to allow signal handler to set terminateFlag
@@ -159,9 +160,9 @@ void Genetic::run()
 	}
 
 	// Monitor progress and termination
-	clock_t startTime = clock();
+	auto startTime = std::chrono::steady_clock::now();
 	double timeLimit = params.ap.timeLimit;
-	while (!terminateFlag.load() && (timeLimit == 0 || (double)(clock() - startTime) / (double)CLOCKS_PER_SEC < timeLimit)) {
+	while (!terminateFlag.load() && (timeLimit == 0 || std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() < timeLimit)) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		// Optionally: print progress, check for convergence, etc.
 		// population.printState(...); // Uncomment and add arguments if desired
@@ -178,7 +179,7 @@ void Genetic::run()
 		}
 	}
 
-    if (params.verbose) std::cout << "----- PARALLEL GENETIC ALGORITHM FINISHED. TIME SPENT: " << (double)(clock() - startTime) / (double)CLOCKS_PER_SEC << std::endl;
+    if (params.verbose) std::cout << "----- PARALLEL GENETIC ALGORITHM FINISHED. TIME SPENT: " << std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() << std::endl;
 }
 
 void Genetic::crossoverOX(Individual & result, const Individual & parent1, const Individual & parent2, Split& split, std::minstd_rand& rng, int nbClients)

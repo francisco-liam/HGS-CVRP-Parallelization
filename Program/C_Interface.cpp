@@ -10,12 +10,14 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <chrono>
 
 Solution *prepare_solution(Population &population, Params &params)
 {
 	// Preparing the best solution
 	Solution *sol = new Solution;
-	sol->time = (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC;
+	using namespace std::chrono;
+	sol->time = duration<double>(steady_clock::now() - params.startTime).count();
 
 	if (population.getBestFound() != nullptr) {
 		// Best individual

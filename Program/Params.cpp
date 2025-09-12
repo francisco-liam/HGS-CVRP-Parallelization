@@ -20,7 +20,7 @@ Params::Params(
 	  vehicleCapacity(vehicleCapacity), timeCost(dist_mtx), verbose(verbose)
 {
 	// This marks the starting time of the algorithm
-	startTime = clock();
+	startTime = std::chrono::steady_clock::now();
 
 	nbClients = (int)demands.size() - 1; // Need to substract the depot from the number of nodes
 	totalDemand = 0.;

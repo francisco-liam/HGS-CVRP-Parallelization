@@ -1,9 +1,11 @@
+#include <chrono>
 #include "Population.h"
 
 void Population::generatePopulation()
 {
 	if (params.verbose) std::cout << "----- BUILDING INITIAL POPULATION" << std::endl;
-	for (int i = 0; i < 4*params.ap.mu && (i == 0 || params.ap.timeLimit == 0 || (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC < params.ap.timeLimit) ; i++)
+	auto popStartTime = std::chrono::steady_clock::now();
+	for (int i = 0; i < 4*params.ap.mu && (i == 0 || params.ap.timeLimit == 0 || std::chrono::duration<double>(std::chrono::steady_clock::now() - popStartTime).count() < params.ap.timeLimit) ; i++)
 	{
 		Individual randomIndiv(params);
 		split.generalSplit(randomIndiv, params.nbVehicles);
@@ -57,7 +59,11 @@ bool Population::addIndividual(const Individual & indiv, bool updateFeasible)
 		if (indiv.eval.penalizedCost < bestSolutionOverall.eval.penalizedCost - MY_EPSILON)
 		{
 			bestSolutionOverall = indiv;
-			searchProgress.push_back({ clock() - params.startTime , bestSolutionOverall.eval.penalizedCost });
+			using namespace std::chrono;
+			double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
+			searchProgress.push_back({0, bestSolutionOverall.eval.penalizedCost}); // Placeholder for time, see below
+			if (!searchProgress.empty())
+				searchProgress.back().first = static_cast<clock_t>(wallTime * CLOCKS_PER_SEC);
 		}
 		return true;
 	}
@@ -218,7 +224,9 @@ void Population::printState(int nbIter, int nbIterNoImprovement)
 	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	if (params.verbose)
 	{
-		std::printf("It %6d %6d | T(s) %.2f", nbIter, nbIterNoImprovement, (double)(clock()-params.startTime)/(double)CLOCKS_PER_SEC);
+		using namespace std::chrono;
+		double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
+		std::printf("It %6d %6d | T(s) %.2f", nbIter, nbIterNoImprovement, wallTime);
 
 		if (getBestFeasible() != NULL) std::printf(" | Feas %zu %.2f %.2f", feasibleSubpop.size(), getBestFeasible()->eval.penalizedCost, getAverageCost(feasibleSubpop));
 		else std::printf(" | NO-FEASIBLE");
