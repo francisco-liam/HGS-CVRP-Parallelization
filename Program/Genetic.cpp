@@ -1,7 +1,18 @@
+#include <csignal>
 #include <thread>
 #include <vector>
 #include <random>
 #include "Genetic.h"
+
+// Global pointer to allow signal handler to set terminateFlag
+static std::atomic<bool>* globalTerminateFlag = nullptr;
+
+void signalHandler(int signum) {
+	if (globalTerminateFlag) {
+		globalTerminateFlag->store(true);
+	}
+}
+
 
 // Worker thread function for parallel HGS
 // Exception-safe worker thread with global termination
@@ -129,10 +140,14 @@ void Genetic::run()
 	if (params.verbose) std::cout << "----- STARTING PARALLEL GENETIC ALGORITHM" << std::endl;
 
 	std::atomic<bool> terminateFlag(false);
+	// Set up signal handler for Ctrl+C
+	globalTerminateFlag = &terminateFlag;
+	std::signal(SIGINT, signalHandler);
 	//int numThreads = std::thread::hardware_concurrency();
 	//if (numThreads < 1) numThreads = 2; // fallback
 
-	int numThreads = 2;
+	int numThreads = params.ap.numThreads > 0 ? params.ap.numThreads : 2;
+	if (numThreads < 1) numThreads = 2;
 
 	unsigned int baseSeed = params.ap.seed;
 	std::vector<std::thread> workers;
