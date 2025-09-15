@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
 				statsFile += "_stats.csv";
 			if (params.verbose) std::cout << "----- WRITING STATS IN : " << statsFile << std::endl;
 			std::ofstream csv(statsFile);
-			csv << "Iteration,AvgFeasibleCost,MinFeasibleCost\n";
+			csv << "Iteration,AvgFeasibleCost,MinFeasibleCost,Time\n";
 			for (const auto& tup : stats) {
-				csv << std::get<0>(tup) << "," << std::get<1>(tup) << "," << std::get<2>(tup) << "\n";
+				csv << std::get<0>(tup) << "," << std::get<1>(tup) << "," << std::get<2>(tup) << "," << std::get<3>(tup) << "\n";
 			}
 		}
 	}

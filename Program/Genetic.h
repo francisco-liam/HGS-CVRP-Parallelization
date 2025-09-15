@@ -49,7 +49,7 @@ public:
 	static std::condition_variable resetBarrierCV;
 
 	// Thread-safe statistics storage for (iteration, avg feasible cost, min feasible cost)
-	static std::vector<std::tuple<int, double, double>> feasibleStats;
+	static std::vector<std::tuple<int, double, double, double>> feasibleStats;
 	static std::mutex feasibleStatsMutex;
 
 	Params & params;				// Problem parameters

@@ -80,8 +80,10 @@ void Genetic::workerThread(
 				double minCost = -1.0;
 				const Individual* best = population.getBestFeasible();
 				if (best) minCost = best->eval.penalizedCost;
+				using namespace std::chrono;
+				double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
 				std::lock_guard<std::mutex> lock(Genetic::feasibleStatsMutex);
-				Genetic::feasibleStats.emplace_back(iter, avgCost, minCost);
+				Genetic::feasibleStats.emplace_back(iter, avgCost, minCost, wallTime);
 			}
 
 			// Penalty management (only one thread does it)
@@ -104,35 +106,34 @@ void Genetic::workerThread(
 
 			// Reset logic (barrier: all threads must reach this point before reset)
 			if (Genetic::nbIterNonProd.load() >= resetInterval) {
-		       // Early termination: if timeLimit == 0 and nbIterNonProd >= params.ap.nbIter, set terminateFlag
-		       if (params.ap.timeLimit == 0 && Genetic::nbIterNonProd.load() >= params.ap.nbIter) {
+			   // Early termination: if timeLimit == 0 and nbIterNonProd >= params.ap.nbIter, set terminateFlag
+			   if (params.ap.timeLimit == 0 && Genetic::nbIterNonProd.load() >= params.ap.nbIter) {
 			       terminateFlag.store(true);
-			       break;
-		       }
-				// Phase 1: Barrier - all threads increment and wait
-				int arrived = Genetic::resetBarrierCount.fetch_add(1) + 1;
-				if (arrived < numThreads) {
-					std::unique_lock<std::mutex> lock(Genetic::resetBarrierMutex);
-					Genetic::resetBarrierCV.wait(lock, [&]{ return Genetic::resetBarrierCount.load() >= numThreads; });
-				}
-				// Phase 2: Only one thread performs the reset
-				if (arrived == numThreads) {
-					std::unique_lock<std::mutex> lock(Genetic::resetMutex);
-					bool expected = false;
-					if (!Genetic::resetInProgress.load() && Genetic::resetInProgress.compare_exchange_strong(expected, true)) {
-						population.restart();
-						Genetic::nbIterNonProd.store(0);
-						Genetic::resetInProgress.store(false);
-						Genetic::resetCV.notify_all();
-					}
-					// Release all threads from the barrier
-					Genetic::resetBarrierCV.notify_all();
-					Genetic::resetBarrierCount.store(0);
-				} else {
-					// Wait for reset to complete and barrier to be released
-					std::unique_lock<std::mutex> lock(Genetic::resetBarrierMutex);
-					Genetic::resetBarrierCV.wait(lock, [&]{ return Genetic::resetBarrierCount.load() == 0; });
-				}
+			   }
+			   // All threads must participate in the barrier, even if terminateFlag is set
+			   int arrived = Genetic::resetBarrierCount.fetch_add(1) + 1;
+			   if (arrived < numThreads) {
+			       std::unique_lock<std::mutex> lock(Genetic::resetBarrierMutex);
+			       while (Genetic::resetBarrierCount.load() != 0) {
+			           Genetic::resetBarrierCV.wait(lock);
+			       }
+			   } else {
+			       // Last thread to arrive
+			       {
+			           std::unique_lock<std::mutex> lock(Genetic::resetMutex);
+			           bool expected = false;
+			           if (!Genetic::resetInProgress.load() && Genetic::resetInProgress.compare_exchange_strong(expected, true)) {
+			               population.restart();
+			               Genetic::nbIterNonProd.store(0);
+			               Genetic::resetInProgress.store(false);
+			               Genetic::resetCV.notify_all();
+			           }
+			       }
+			       Genetic::resetBarrierCount.store(0);
+			       Genetic::resetBarrierCV.notify_all();
+			   }
+			   // Only after the barrier, check for termination and break if needed
+			   if (terminateFlag.load()) break;
 			}
 		}
 	} catch (const std::exception& ex) {
@@ -258,6 +259,6 @@ std::mutex Genetic::resetBarrierMutex;
 std::condition_variable Genetic::resetBarrierCV;
 
 // Stats storage
-std::vector<std::tuple<int, double, double>> Genetic::feasibleStats;
+std::vector<std::tuple<int, double, double, double>> Genetic::feasibleStats;
 std::mutex Genetic::feasibleStatsMutex;
 
