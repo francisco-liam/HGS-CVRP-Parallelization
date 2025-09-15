@@ -29,6 +29,8 @@ SOFTWARE.*/
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
+#include <tuple>
+#include <vector>
 
 class Genetic
 {
@@ -45,6 +47,10 @@ public:
 	static std::atomic<int> resetBarrierCount;
 	static std::mutex resetBarrierMutex;
 	static std::condition_variable resetBarrierCV;
+
+	// Thread-safe statistics storage for (iteration, avg feasible cost, min feasible cost)
+	static std::vector<std::tuple<int, double, double>> feasibleStats;
+	static std::mutex feasibleStatsMutex;
 
 	Params & params;				// Problem parameters
 	Split split;					// Split algorithm

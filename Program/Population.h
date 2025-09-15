@@ -32,7 +32,7 @@ typedef std::vector <Individual*> SubPopulation ;
 
 class Population
 {
-   private:
+   public:
 
    std::recursive_mutex popMutex;               // Mutex for thread safety
    Params & params ;							// Problem parameters
@@ -51,8 +51,6 @@ class Population
 
    // Removes the worst individual in terms of biased fitness
    void removeWorstBiasedFitness(SubPopulation & subpop);
-
-   public:
 
    // Creates an initial population of individuals
    void generatePopulation();

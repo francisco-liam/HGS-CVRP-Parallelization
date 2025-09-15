@@ -3,6 +3,9 @@
 #include <vector>
 #include <random>
 #include <chrono>
+#include <tuple>
+#include <mutex>
+#include <fstream>
 #include "Genetic.h"
 
 // Global pointer to allow signal handler to set terminateFlag
@@ -43,9 +46,6 @@ void Genetic::workerThread(
 		int numThreads = 2;
 
 		while (!terminateFlag.load()) {
-			// Get current iteration at start of loop
-			int iter = Genetic::nbIter.fetch_add(1);
-
 			// Selection (copy parents immediately to avoid use-after-free)
 			Individual parent1(population.getBinaryTournament());
 			Individual parent2(population.getBinaryTournament());
@@ -67,6 +67,21 @@ void Genetic::workerThread(
 				Genetic::nbIterNonProd.store(0);
 			} else {
 				Genetic::nbIterNonProd.fetch_add(1);
+			}
+
+			// Get current iteration at start of loop
+			int iter = Genetic::nbIter.fetch_add(1);
+
+			// Record feasible population stats (only one thread per iteration)
+			static std::atomic<int> lastStatsIter{0};
+			int expected = iter - 1;
+			if (iter > lastStatsIter.load() && lastStatsIter.compare_exchange_strong(expected, iter)) {
+				double avgCost = population.getAverageCost(population.feasibleSubpop);
+				double minCost = -1.0;
+				const Individual* best = population.getBestFeasible();
+				if (best) minCost = best->eval.penalizedCost;
+				std::lock_guard<std::mutex> lock(Genetic::feasibleStatsMutex);
+				Genetic::feasibleStats.emplace_back(iter, avgCost, minCost);
 			}
 
 			// Penalty management (only one thread does it)
@@ -179,7 +194,7 @@ void Genetic::run()
 		}
 	}
 
-    if (params.verbose) {
+	if (params.verbose) {
 		using namespace std::chrono;
 		double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
 		std::cout << "----- GENETIC ALGORITHM FINISHED AFTER " << nbIter << " ITERATIONS. TIME SPENT: " << wallTime << std::endl;
@@ -241,4 +256,8 @@ std::condition_variable Genetic::resetCV;
 std::atomic<int> Genetic::resetBarrierCount{0};
 std::mutex Genetic::resetBarrierMutex;
 std::condition_variable Genetic::resetBarrierCV;
+
+// Stats storage
+std::vector<std::tuple<int, double, double>> Genetic::feasibleStats;
+std::mutex Genetic::feasibleStatsMutex;
 
