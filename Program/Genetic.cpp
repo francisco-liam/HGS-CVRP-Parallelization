@@ -43,7 +43,7 @@ void Genetic::workerThread(
 		//int numThreads = std::thread::hardware_concurrency();
 		//if (numThreads < 1) numThreads = 2;
 		
-		int numThreads = 2;
+		int numThreads = params.ap.numThreads;
 
 		while (!terminateFlag.load()) {
 			// Selection (copy parents immediately to avoid use-after-free)

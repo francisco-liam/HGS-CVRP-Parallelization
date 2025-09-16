@@ -211,6 +211,10 @@ int Split::splitLF(Individual & indiv)
 
 Split::Split(const Params & params): params(params)
 {
+    if (params.nbClients <= 0)
+        throw std::runtime_error("Split: params.nbClients must be > 0");
+    if (params.nbVehicles < 0)
+        throw std::runtime_error("Split: params.nbVehicles must be >= 0");
 	// Structures of the linear Split
 	cliSplit = std::vector <ClientSplit>(params.nbClients + 1);
 	sumDistance = std::vector <double>(params.nbClients + 1,0.);
