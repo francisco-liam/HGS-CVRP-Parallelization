@@ -41,8 +41,7 @@ void Genetic::workerThread(
 		int resetInterval = params.ap.nbIter > 0 ? params.ap.nbIter : 1000;
 
 		//int numThreads = std::thread::hardware_concurrency();
-		//if (numThreads < 1) numThreads = 2;
-		
+		//if (numThreads < 1) numThreads = 2;		
 		int numThreads = params.ap.numThreads;
 
 		while (!terminateFlag.load()) {
@@ -72,19 +71,15 @@ void Genetic::workerThread(
 			// Get current iteration at start of loop
 			int iter = Genetic::nbIter.fetch_add(1);
 
-			// Record feasible population stats (only one thread per iteration)
-			static std::atomic<int> lastStatsIter{0};
-			int expected = iter - 1;
-			if (iter > lastStatsIter.load() && lastStatsIter.compare_exchange_strong(expected, iter)) {
-				double avgCost = population.getAverageCost(population.feasibleSubpop);
-				double minCost = -1.0;
-				const Individual* best = population.getBestFeasible();
-				if (best) minCost = best->eval.penalizedCost;
-				using namespace std::chrono;
-				double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
-				std::lock_guard<std::mutex> lock(Genetic::feasibleStatsMutex);
-				Genetic::feasibleStats.emplace_back(iter, avgCost, minCost, wallTime);
-			}
+			// Record feasible population stats for every iteration (not just once per iteration number)
+			double avgCost = population.getAverageCost(population.feasibleSubpop);
+			double minCost = -1.0;
+			const Individual* best = population.getBestFeasible();
+			if (best) minCost = best->eval.penalizedCost;
+			using namespace std::chrono;
+			double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
+			std::lock_guard<std::mutex> lock(Genetic::feasibleStatsMutex);
+			Genetic::feasibleStats.emplace_back(iter, avgCost, minCost, wallTime);
 
 			// Penalty management (only one thread does it)
 			if (iter % penaltyInterval == 0) {
