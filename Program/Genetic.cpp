@@ -35,6 +35,9 @@ void Genetic::workerThread(
 		// Thread-local RNG
 		std::minstd_rand rng(baseSeed + threadId);
 
+		// Thread-local stats vector
+		std::vector<std::tuple<int, double, double, double>> localStats;
+
 		// Main worker loop (termination condition to be set by caller)
 		int penaltyInterval = params.ap.nbIterPenaltyManagement > 0 ? params.ap.nbIterPenaltyManagement : 100;
 		int traceInterval = params.ap.nbIterTraces > 0 ? params.ap.nbIterTraces : 100;
@@ -71,15 +74,14 @@ void Genetic::workerThread(
 			// Get current iteration at start of loop
 			int iter = Genetic::nbIter.fetch_add(1);
 
-			// Record feasible population stats for every iteration (not just once per iteration number)
+			// Record feasible population stats for every iteration (thread-local, no mutex)
 			double avgCost = population.getAverageCost(population.feasibleSubpop);
 			double minCost = -1.0;
 			const Individual* best = population.getBestFeasible();
 			if (best) minCost = best->eval.penalizedCost;
 			using namespace std::chrono;
 			double wallTime = duration<double>(steady_clock::now() - params.startTime).count();
-			std::lock_guard<std::mutex> lock(Genetic::feasibleStatsMutex);
-			Genetic::feasibleStats.emplace_back(iter, avgCost, minCost, wallTime);
+			localStats.emplace_back(iter, avgCost, minCost, wallTime);
 
 			// Penalty management (only one thread does it)
 			if (iter % penaltyInterval == 0) {
@@ -130,6 +132,11 @@ void Genetic::workerThread(
 			   // Only after the barrier, check for termination and break if needed
 			   if (terminateFlag.load()) break;
 			}
+		}
+		// After the loop, merge localStats into the global vector
+		{
+			std::lock_guard<std::mutex> lock(Genetic::feasibleStatsMutex);
+			Genetic::feasibleStats.insert(Genetic::feasibleStats.end(), localStats.begin(), localStats.end());
 		}
 	} catch (const std::exception& ex) {
 		terminateFlag.store(true);
