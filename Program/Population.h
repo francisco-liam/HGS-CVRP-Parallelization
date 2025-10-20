@@ -44,6 +44,9 @@ class Population
    Individual bestSolutionRestart;              // Best solution found during the current restart of the algorithm
    Individual bestSolutionOverall;              // Best solution found during the complete execution of the algorithm
 
+   // Stores iteration statistics: Iteration, Min Cost, Avg Cost, Time
+   std::vector<std::tuple<int, double, double, double>> stats;
+
    // Evaluates the biased fitness of all individuals in the population
    void updateBiasedFitnesses(SubPopulation & pop);
 
@@ -97,6 +100,18 @@ class Population
 
    // Exports an Individual in CVRPLib format
    void exportCVRPLibFormat(const Individual & indiv, std::string fileName);
+
+   // Returns the minimum feasible solution cost
+   double getMinFeasibleCost() const;
+
+   // Returns the average feasible solution cost
+   double getAverageFeasibleCost() const;
+
+   // Retrieve stats for writing to file
+   const std::vector<std::tuple<int, double, double, double>>& getStats() const;
+
+   // Adds a new entry to the stats vector
+   void addStats(int iteration, double minCost, double avgCost, double timeElapsed);
 
    // Constructor
    Population(Params & params, Split & split, LocalSearch & localSearch);

@@ -3,6 +3,8 @@
 #include "LocalSearch.h"
 #include "Split.h"
 #include "InstanceCVRPLIB.h"
+#include <fstream>
+#include <tuple>
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -26,15 +28,23 @@ int main(int argc, char *argv[])
 		Genetic solver(params);
 		solver.run();
 		
-		// Exporting the best solution
+		// Exporting the best solution and stats
 		if (solver.population.getBestFound() != NULL)
 		{
 			if (params.verbose) std::cout << "----- WRITING BEST SOLUTION IN : " << commandline.pathSolution << std::endl;
-			solver.population.exportCVRPLibFormat(*solver.population.getBestFound(),commandline.pathSolution);
+			solver.population.exportCVRPLibFormat(*solver.population.getBestFound(), commandline.pathSolution);
 			solver.population.exportSearchProgress(commandline.pathSolution + ".PG.csv", commandline.pathInstance);
 		}
+
+		// Write stats file
+		std::ofstream statsFile(commandline.pathSolution + "_stats.csv");
+		statsFile << "Iteration,MinCost,AvgCost,Time" << std::endl;
+		for (const auto& [iter, minCost, avgCost, time] : solver.population.getStats())
+		{
+			statsFile << iter << "," << minCost << "," << avgCost << "," << time << std::endl;
+		}
 	}
-	catch (const string& e) { std::cout << "EXCEPTION | " << e << std::endl; }
+	catch (const std::string& e) { std::cout << "EXCEPTION | " << e << std::endl; }
 	catch (const std::exception& e) { std::cout << "EXCEPTION | " << e.what() << std::endl; }
 	return 0;
 }

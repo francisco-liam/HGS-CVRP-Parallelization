@@ -1,4 +1,5 @@
 #include "Genetic.h"
+#include <fstream>
 
 void Genetic::run()
 {	
@@ -36,6 +37,12 @@ void Genetic::run()
 			population.restart();
 			nbIterNonProd = 1;
 		}
+
+		// Record stats for this iteration
+		double minCost = population.getMinFeasibleCost();
+		double avgCost = population.getAverageFeasibleCost();
+		double timeElapsed = (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC;
+		population.addStats(nbIter, minCost, avgCost, timeElapsed);
 	}
 	if (params.verbose) std::cout << "----- GENETIC ALGORITHM FINISHED AFTER " << nbIter << " ITERATIONS. TIME SPENT: " << (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC << std::endl;
 }

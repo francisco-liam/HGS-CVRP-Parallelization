@@ -268,6 +268,31 @@ double Population::getAverageCost(const SubPopulation & pop)
 	else return -1.0;
 }
 
+double Population::getMinFeasibleCost() const
+{
+	if (feasibleSubpop.empty()) return -1.0;
+	double minCost = std::numeric_limits<double>::max();
+	for (const auto& indiv : feasibleSubpop)
+	{
+		if (indiv->eval.penalizedCost < minCost)
+		{
+			minCost = indiv->eval.penalizedCost;
+		}
+	}
+	return minCost;
+}
+
+double Population::getAverageFeasibleCost() const
+{
+	if (feasibleSubpop.empty()) return -1.0;
+	double totalCost = 0.0;
+	for (const auto& indiv : feasibleSubpop)
+	{
+		totalCost += indiv->eval.penalizedCost;
+	}
+	return totalCost / feasibleSubpop.size();
+}
+
 void Population::exportSearchProgress(std::string fileName, std::string instanceName)
 {
 	std::ofstream myfile(fileName);
@@ -298,10 +323,21 @@ Population::Population(Params & params, Split & split, LocalSearch & localSearch
 {
 	listFeasibilityLoad = std::list<bool>(params.ap.nbIterPenaltyManagement, true);
 	listFeasibilityDuration = std::list<bool>(params.ap.nbIterPenaltyManagement, true);
+	stats.clear(); // Initialize stats vector
 }
 
 Population::~Population()
 {
 	for (int i = 0; i < (int)feasibleSubpop.size(); i++) delete feasibleSubpop[i];
 	for (int i = 0; i < (int)infeasibleSubpop.size(); i++) delete infeasibleSubpop[i];
+}
+
+const std::vector<std::tuple<int, double, double, double>>& Population::getStats() const
+{
+	return stats;
+}
+
+void Population::addStats(int iteration, double minCost, double avgCost, double timeElapsed)
+{
+	stats.emplace_back(iteration, minCost, avgCost, timeElapsed);
 }
