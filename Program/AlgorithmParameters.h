@@ -21,6 +21,7 @@ struct AlgorithmParameters {
 
 	int seed;				// Random seed. Default value: 0
 	int nbIter;				// Nb iterations without improvement until termination (or restart if a time limit is specified). Default value: 20,000 iterations
+	int maxIter;				// Maximum number of iterations. Default value: 0 iterations
 	int nbIterTraces;       // Number of iterations between traces display during HGS execution
 	double timeLimit;		// CPU time limit until termination in seconds. Default value: 0 (i.e., inactive)
 	int useSwapStar;		// Use SWAP* local search or not. Default value: 1. Only available when coordinates are provided.

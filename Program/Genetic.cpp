@@ -48,6 +48,12 @@ void Genetic::workerThread(
 		int numThreads = params.ap.numThreads;
 
 		while (!terminateFlag.load()) {
+			// Ensure no evaluations occur after reaching maxIter
+			if (params.ap.maxIter != 0 && Genetic::nbIter.load() >= params.ap.maxIter) {
+				terminateFlag.store(true);
+				break;
+			}
+
 			// Selection (copy parents immediately to avoid use-after-free)
 			Individual parent1(population.getBinaryTournament());
 			Individual parent2(population.getBinaryTournament());
@@ -103,34 +109,37 @@ void Genetic::workerThread(
 
 			// Reset logic (barrier: all threads must reach this point before reset)
 			if (Genetic::nbIterNonProd.load() >= resetInterval) {
-			   // Early termination: if timeLimit == 0 and nbIterNonProd >= params.ap.nbIter, set terminateFlag
-			   if (params.ap.timeLimit == 0 && Genetic::nbIterNonProd.load() >= params.ap.nbIter) {
-			       terminateFlag.store(true);
-			   }
-			   // All threads must participate in the barrier, even if terminateFlag is set
-			   int arrived = Genetic::resetBarrierCount.fetch_add(1) + 1;
-			   if (arrived < numThreads) {
-			       std::unique_lock<std::mutex> lock(Genetic::resetBarrierMutex);
-			       while (Genetic::resetBarrierCount.load() != 0) {
-			           Genetic::resetBarrierCV.wait(lock);
-			       }
-			   } else {
-			       // Last thread to arrive
-			       {
-			           std::unique_lock<std::mutex> lock(Genetic::resetMutex);
-			           bool expected = false;
-			           if (!Genetic::resetInProgress.load() && Genetic::resetInProgress.compare_exchange_strong(expected, true)) {
-			               population.restart();
-			               Genetic::nbIterNonProd.store(0);
-			               Genetic::resetInProgress.store(false);
-			               Genetic::resetCV.notify_all();
-			           }
-			       }
-			       Genetic::resetBarrierCount.store(0);
-			       Genetic::resetBarrierCV.notify_all();
-			   }
-			   // Only after the barrier, check for termination and break if needed
-			   if (terminateFlag.load()) break;
+			   	// Early termination: if timeLimit == 0 and nbIterNonProd >= params.ap.nbIter, set terminateFlag
+			   	if ((params.ap.timeLimit == 0 && params.ap.maxIter == 0) && Genetic::nbIterNonProd.load() >= params.ap.nbIter) {
+			       	terminateFlag.store(true);
+			   	}
+			   	if (params.ap.maxIter != 0 && Genetic::nbIter.load() >= params.ap.maxIter) {
+			       	terminateFlag.store(true);
+			   	}	
+			   	// All threads must participate in the barrier, even if terminateFlag is set
+				int arrived = Genetic::resetBarrierCount.fetch_add(1) + 1;
+				if (arrived < numThreads) {
+					std::unique_lock<std::mutex> lock(Genetic::resetBarrierMutex);
+					while (Genetic::resetBarrierCount.load() != 0) {
+						Genetic::resetBarrierCV.wait(lock);
+					}
+				} else {
+					// Last thread to arrive
+					{
+						std::unique_lock<std::mutex> lock(Genetic::resetMutex);
+						bool expected = false;
+						if (!Genetic::resetInProgress.load() && Genetic::resetInProgress.compare_exchange_strong(expected, true)) {
+							population.restart();
+							Genetic::nbIterNonProd.store(0);
+							Genetic::resetInProgress.store(false);
+							Genetic::resetCV.notify_all();
+						}
+					}
+					Genetic::resetBarrierCount.store(0);
+					Genetic::resetBarrierCV.notify_all();
+				}
+				// Only after the barrier, check for termination and break if needed
+				if (terminateFlag.load()) break;
 			}
 		}
 		// After the loop, merge localStats into the global vector

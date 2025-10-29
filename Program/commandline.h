@@ -66,10 +66,10 @@ public:
 					isRoundingInteger = atoi(argv[i+1]);
 				else if (std::string(argv[i]) == "-log")
 					verbose = atoi(argv[i+1]);
-				else if (std::string(argv[i]) == "-threads") {
-					numThreads = atoi(argv[i+1]);
-					ap.numThreads = numThreads;
-				}
+				else if (std::string(argv[i]) == "-threads")
+					ap.numThreads = atoi(argv[i+1]);
+				else if (std::string(argv[i]) == "-maxIter")
+					ap.maxIter = atoi(argv[i+1]);
 				else if (std::string(argv[i]) == "-nbGranular")
 					ap.nbGranular = atoi(argv[i+1]);
 				else if (std::string(argv[i]) == "-mu")
