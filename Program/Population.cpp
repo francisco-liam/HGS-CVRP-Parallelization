@@ -134,6 +134,7 @@ void Population::removeWorstBiasedFitness(SubPopulation & pop)
 
 void Population::restart()
 {
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
 	if (params.verbose) std::cout << "----- RESET: CREATING A NEW POPULATION -----" << std::endl;
 	for (Individual * indiv : feasibleSubpop) delete indiv ;
 	for (Individual * indiv : infeasibleSubpop) delete indiv;
@@ -196,6 +197,28 @@ const Individual & Population::getBinaryTournament ()
 	updateBiasedFitnesses(infeasibleSubpop);
 	if (indiv1->biasedFitness < indiv2->biasedFitness) return *indiv1 ;
 	else return *indiv2 ;		
+}
+
+Individual Population::getBinaryTournamentCopy(std::minstd_rand &rng)
+{
+	std::lock_guard<std::recursive_mutex> lock(popMutex);
+	// Guard against empty population
+	size_t total = feasibleSubpop.size() + infeasibleSubpop.size();
+	if (total == 0) throw std::runtime_error("Binary tournament on empty population");
+
+	std::uniform_int_distribution<> distr(0, static_cast<int>(total) - 1);
+	int place1 = distr(rng);
+	int place2 = distr(rng);
+	Individual * indiv1 = (place1 >= (int)feasibleSubpop.size()) ? infeasibleSubpop[place1 - feasibleSubpop.size()] : feasibleSubpop[place1];
+	Individual * indiv2 = (place2 >= (int)feasibleSubpop.size()) ? infeasibleSubpop[place2 - feasibleSubpop.size()] : feasibleSubpop[place2];
+
+	// Update biased fitnesses before comparing
+	updateBiasedFitnesses(feasibleSubpop);
+	updateBiasedFitnesses(infeasibleSubpop);
+
+	const Individual * bestPtr = (indiv1->biasedFitness < indiv2->biasedFitness) ? indiv1 : indiv2;
+	// Return a copy while the lock is held so underlying memory is valid during copy
+	return *bestPtr;
 }
 
 const Individual * Population::getBestFeasible ()

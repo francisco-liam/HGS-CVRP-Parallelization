@@ -54,9 +54,9 @@ void Genetic::workerThread(
 				break;
 			}
 
-			// Selection (copy parents immediately to avoid use-after-free)
-			Individual parent1(population.getBinaryTournament());
-			Individual parent2(population.getBinaryTournament());
+			// Selection using thread-safe copied parents and thread-local RNG (avoids data races on params.ran)
+			Individual parent1 = population.getBinaryTournamentCopy(rng);
+			Individual parent2 = population.getBinaryTournamentCopy(rng);
 			Individual offspring(params);
 
 			// Crossover (OX) -- now thread-safe

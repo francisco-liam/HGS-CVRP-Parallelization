@@ -68,6 +68,10 @@ class Population
    // Select an individal by binary tournament in the union of the feasible and infeasible subpopulations.
    const Individual & getBinaryTournament();
 
+   // Thread-safe: returns a COPY of the selected individual while holding the lock
+   // and uses a thread-local RNG passed by the caller to avoid data races on params.ran
+   Individual getBinaryTournamentCopy(std::minstd_rand &rng);
+
    // Accesses the best feasible individual
    const Individual * getBestFeasible();
 

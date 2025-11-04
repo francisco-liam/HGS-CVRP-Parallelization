@@ -23,6 +23,7 @@ def find_csv_stats(directory, y):
 
     # Calculate the average of the highest values in column 4
     total_time = 0
+    total_lines = 0  # Total number of lines across all stats.csv files
     for csv_file in csv_files:
         try:
             with open(csv_file, 'r') as f:
@@ -30,12 +31,18 @@ def find_csv_stats(directory, y):
                 next(reader)  # Skip header if it exists
                 max_time = max(float(row[3]) for row in reader if row[3].strip())
                 total_time += max_time
+
+                # Count the number of lines in the file (excluding the header)
+                f.seek(0)  # Reset file pointer to the beginning
+                total_lines += sum(1 for _ in reader) - 1  # Subtract 1 for the header
         except Exception as e:
             print(f"Error processing file {csv_file}: {e}")
             continue
 
     avg_time = total_time / num_csvs
+    avg_lines = total_lines / num_csvs if num_csvs > 0 else 0  # Average number of lines
     print(f"Average of the highest values in column 4 (time): {avg_time:.2f}")
+    print(f"Average number of lines in stats.csv files: {avg_lines:.2f}")
 
     # Find all .sol files and calculate the average cost
     sol_files = []
