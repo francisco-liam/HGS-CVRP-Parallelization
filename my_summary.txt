@@ -1,0 +1,133 @@
+Stats CSV Summary
+Root scanned: /home/liamf/HGS-CVRP-Parallelization
+
+Directory: n1001
+  Files found: 10
+  1-thread/n1001-1-10.sol_stats.csv: 262123 data lines
+  1-thread/n1001-1-3.sol_stats.csv: 227360 data lines
+  1-thread/n1001-1-9.sol_stats.csv: 256727 data lines
+  1-thread/n1001-1-8.sol_stats.csv: 212293 data lines
+  1-thread/n1001-1-4.sol_stats.csv: 209610 data lines
+  1-thread/n1001-1-2.sol_stats.csv: 231852 data lines
+  1-thread/n1001-1-6.sol_stats.csv: 212788 data lines
+  1-thread/n1001-1-5.sol_stats.csv: 227929 data lines
+  1-thread/n1001-1-1.sol_stats.csv: 210379 data lines
+  1-thread/n1001-1-7.sol_stats.csv: 202652 data lines
+
+Directory: n106
+  Files found: 10
+  1-thread/n106-1-5.sol_stats.csv: 356063 data lines
+  1-thread/n106-1-8.sol_stats.csv: 335932 data lines
+  1-thread/n106-1-9.sol_stats.csv: 331255 data lines
+  1-thread/n106-1-7.sol_stats.csv: 348259 data lines
+  1-thread/n106-1-6.sol_stats.csv: 352943 data lines
+  1-thread/n106-1-1.sol_stats.csv: 353615 data lines
+  1-thread/n106-1-2.sol_stats.csv: 353377 data lines
+  1-thread/n106-1-3.sol_stats.csv: 355400 data lines
+  1-thread/n106-1-10.sol_stats.csv: 335209 data lines
+  1-thread/n106-1-4.sol_stats.csv: 355382 data lines
+
+Directory: n289
+  Files found: 10
+  1-thread/n289-1-5.sol_stats.csv: 376543 data lines
+  1-thread/n289-1-7.sol_stats.csv: 400274 data lines
+  1-thread/n289-1-6.sol_stats.csv: 396653 data lines
+  1-thread/n289-1-2.sol_stats.csv: 385433 data lines
+  1-thread/n289-1-9.sol_stats.csv: 380127 data lines
+  1-thread/n289-1-4.sol_stats.csv: 384376 data lines
+  1-thread/n289-1-3.sol_stats.csv: 377593 data lines
+  1-thread/n289-1-1.sol_stats.csv: 420079 data lines
+  1-thread/n289-1-10.sol_stats.csv: 380308 data lines
+  1-thread/n289-1-8.sol_stats.csv: 388999 data lines
+
+Directory: n359
+  Files found: 10
+  1-thread/n359-1-1.sol_stats.csv: 374701 data lines
+  1-thread/n359-1-3.sol_stats.csv: 344630 data lines
+  1-thread/n359-1-4.sol_stats.csv: 343635 data lines
+  1-thread/n359-1-6.sol_stats.csv: 351806 data lines
+  1-thread/n359-1-8.sol_stats.csv: 330907 data lines
+  1-thread/n359-1-7.sol_stats.csv: 352498 data lines
+  1-thread/n359-1-9.sol_stats.csv: 343720 data lines
+  1-thread/n359-1-2.sol_stats.csv: 352356 data lines
+  1-thread/n359-1-5.sol_stats.csv: 344810 data lines
+  1-thread/n359-1-10.sol_stats.csv: 369869 data lines
+
+Directory: n491
+  Files found: 10
+  1-thread/n491-1-3.sol_stats.csv: 492618 data lines
+  1-thread/n491-1-6.sol_stats.csv: 481538 data lines
+  1-thread/n491-1-5.sol_stats.csv: 499401 data lines
+  1-thread/n491-1-1.sol_stats.csv: 490220 data lines
+  1-thread/n491-1-2.sol_stats.csv: 479553 data lines
+  1-thread/n491-1-7.sol_stats.csv: 505011 data lines
+  1-thread/n491-1-4.sol_stats.csv: 491526 data lines
+  1-thread/n491-1-9.sol_stats.csv: 518245 data lines
+  1-thread/n491-1-8.sol_stats.csv: 522025 data lines
+  1-thread/n491-1-10.sol_stats.csv: 537864 data lines
+
+Directory: n573
+  Files found: 10
+  1-thread/n573-1-9.sol_stats.csv: 189270 data lines
+  1-thread/n573-1-6.sol_stats.csv: 192806 data lines
+  1-thread/n573-1-1.sol_stats.csv: 193160 data lines
+  1-thread/n573-1-10.sol_stats.csv: 209532 data lines
+  1-thread/n573-1-7.sol_stats.csv: 202484 data lines
+  1-thread/n573-1-5.sol_stats.csv: 187946 data lines
+  1-thread/n573-1-2.sol_stats.csv: 181178 data lines
+  1-thread/n573-1-3.sol_stats.csv: 191024 data lines
+  1-thread/n573-1-8.sol_stats.csv: 202432 data lines
+  1-thread/n573-1-4.sol_stats.csv: 181825 data lines
+
+Directory: n627
+  Files found: 10
+  1-thread/n627-1-8.sol_stats.csv: 256823 data lines
+  1-thread/n627-1-3.sol_stats.csv: 234008 data lines
+  1-thread/n627-1-4.sol_stats.csv: 230939 data lines
+  1-thread/n627-1-7.sol_stats.csv: 251373 data lines
+  1-thread/n627-1-6.sol_stats.csv: 243408 data lines
+  1-thread/n627-1-9.sol_stats.csv: 251689 data lines
+  1-thread/n627-1-2.sol_stats.csv: 234540 data lines
+  1-thread/n627-1-10.sol_stats.csv: 276080 data lines
+  1-thread/n627-1-1.sol_stats.csv: 230672 data lines
+  1-thread/n627-1-5.sol_stats.csv: 244900 data lines
+
+Directory: n783
+  Files found: 10
+  1-thread/n783-1-10.sol_stats.csv: 281730 data lines
+  1-thread/n783-1-2.sol_stats.csv: 282742 data lines
+  1-thread/n783-1-4.sol_stats.csv: 314715 data lines
+  1-thread/n783-1-9.sol_stats.csv: 271359 data lines
+  1-thread/n783-1-1.sol_stats.csv: 287723 data lines
+  1-thread/n783-1-7.sol_stats.csv: 268353 data lines
+  1-thread/n783-1-6.sol_stats.csv: 288458 data lines
+  1-thread/n783-1-8.sol_stats.csv: 277980 data lines
+  1-thread/n783-1-3.sol_stats.csv: 278073 data lines
+  1-thread/n783-1-5.sol_stats.csv: 290043 data lines
+
+Directory: n895
+  Files found: 10
+  1-thread/n895-1-9.sol_stats.csv: 237589 data lines
+  1-thread/n895-1-4.sol_stats.csv: 264670 data lines
+  1-thread/n895-1-2.sol_stats.csv: 260417 data lines
+  1-thread/n895-1-1.sol_stats.csv: 251692 data lines
+  1-thread/n895-1-5.sol_stats.csv: 269535 data lines
+  1-thread/n895-1-8.sol_stats.csv: 267498 data lines
+  1-thread/n895-1-7.sol_stats.csv: 256892 data lines
+  1-thread/n895-1-3.sol_stats.csv: 261328 data lines
+  1-thread/n895-1-10.sol_stats.csv: 271411 data lines
+  1-thread/n895-1-6.sol_stats.csv: 265219 data lines
+
+Directory: n936
+  Files found: 10
+  1-thread/n936-1-7.sol_stats.csv: 325689 data lines
+  1-thread/n936-1-5.sol_stats.csv: 335293 data lines
+  1-thread/n936-1-3.sol_stats.csv: 323717 data lines
+  1-thread/n936-1-2.sol_stats.csv: 336227 data lines
+  1-thread/n936-1-10.sol_stats.csv: 395008 data lines
+  1-thread/n936-1-9.sol_stats.csv: 346195 data lines
+  1-thread/n936-1-4.sol_stats.csv: 337983 data lines
+  1-thread/n936-1-1.sol_stats.csv: 334897 data lines
+  1-thread/n936-1-6.sol_stats.csv: 321974 data lines
+  1-thread/n936-1-8.sol_stats.csv: 328373 data lines
+
