@@ -23,8 +23,10 @@ bool Population::addIndividual(const Individual & indiv, bool updateFeasible)
 	{
 		listFeasibilityLoad.push_back(indiv.eval.capacityExcess < MY_EPSILON);
 		listFeasibilityDuration.push_back(indiv.eval.durationExcess < MY_EPSILON);
+		listFeasibilityEnergy.push_back(indiv.eval.energyExcess < MY_EPSILON);
 		listFeasibilityLoad.pop_front();
 		listFeasibilityDuration.pop_front();
+		listFeasibilityEnergy.pop_front();
 	}
 
 	// Find the adequate subpopulation in relation to the individual feasibility
@@ -152,11 +154,19 @@ void Population::managePenalties()
 	else if (fractionFeasibleDuration > params.ap.targetFeasible + 0.05 && params.penaltyDuration > 0.1)
 		params.penaltyDuration = std::max<double>(params.penaltyDuration * params.ap.penaltyDecrease, 0.1);
 
+	// Setting some bounds [0.1,100000] to the penalty values for safety
+	double fractionFeasibleEnergy = (double)std::count(listFeasibilityEnergy.begin(), listFeasibilityEnergy.end(), true) / (double)listFeasibilityEnergy.size();
+	if (fractionFeasibleEnergy < params.ap.targetFeasible - 0.05 && params.penaltyEnergy < 100000.)
+		params.penaltyEnergy = std::min<double>(params.penaltyEnergy * params.ap.penaltyIncrease, 100000.);
+	else if (fractionFeasibleEnergy > params.ap.targetFeasible + 0.05 && params.penaltyEnergy > 0.1)
+		params.penaltyEnergy = std::max<double>(params.penaltyEnergy * params.ap.penaltyDecrease, 0.1);
+
 	// Update the evaluations
 	for (int i = 0; i < (int)infeasibleSubpop.size(); i++)
 		infeasibleSubpop[i]->eval.penalizedCost = infeasibleSubpop[i]->eval.distance
 		+ params.penaltyCapacity * infeasibleSubpop[i]->eval.capacityExcess
-		+ params.penaltyDuration * infeasibleSubpop[i]->eval.durationExcess;
+		+ params.penaltyDuration * infeasibleSubpop[i]->eval.durationExcess
+		+ params.penaltyEnergy * infeasibleSubpop[i]->eval.energyExcess;
 
 	// If needed, reorder the individuals in the infeasible subpopulation since the penalty values have changed (simple bubble sort for the sake of simplicity)
 	for (int i = 0; i < (int)infeasibleSubpop.size(); i++)
@@ -220,8 +230,11 @@ void Population::printState(int nbIter, int nbIterNoImprovement)
 		else std::printf(" | NO-INFEASIBLE");
 
 		std::printf(" | Div %.2f %.2f", getDiversity(feasibleSubpop), getDiversity(infeasibleSubpop));
-		std::printf(" | Feas %.2f %.2f", (double)std::count(listFeasibilityLoad.begin(), listFeasibilityLoad.end(), true) / (double)listFeasibilityLoad.size(), (double)std::count(listFeasibilityDuration.begin(), listFeasibilityDuration.end(), true) / (double)listFeasibilityDuration.size());
-		std::printf(" | Pen %.2f %.2f", params.penaltyCapacity, params.penaltyDuration);
+		std::printf(" | Feas %.2f %.2f %.2f",
+			(double)std::count(listFeasibilityLoad.begin(), listFeasibilityLoad.end(), true) / (double)listFeasibilityLoad.size(),
+			(double)std::count(listFeasibilityDuration.begin(), listFeasibilityDuration.end(), true) / (double)listFeasibilityDuration.size(),
+			(double)std::count(listFeasibilityEnergy.begin(), listFeasibilityEnergy.end(), true) / (double)listFeasibilityEnergy.size());
+		std::printf(" | Pen %.2f %.2f %.2f", params.penaltyCapacity, params.penaltyDuration, params.penaltyEnergy);
 		std::cout << std::endl;
 	}
 }
@@ -305,12 +318,13 @@ void Population::exportCVRPLibFormat(const Individual & indiv, std::string fileN
 	std::ofstream myfile(fileName);
 	if (myfile.is_open())
 	{
-		for (int k = 0; k < (int)indiv.chromR.size(); k++)
+		const std::vector<std::vector<int>> &routes = (!indiv.chromRWithChargers.empty()) ? indiv.chromRWithChargers : indiv.chromR;
+		for (int k = 0; k < (int)routes.size(); k++)
 		{
-			if (!indiv.chromR[k].empty())
+			if (!routes[k].empty())
 			{
 				myfile << "Route #" << k + 1 << ":"; // Route IDs start at 1 in the file format
-				for (int i : indiv.chromR[k]) myfile << " " << i;
+				for (int i : routes[k]) myfile << " " << i;
 				myfile << std::endl;
 			}
 		}
@@ -323,6 +337,7 @@ Population::Population(Params & params, Split & split, LocalSearch & localSearch
 {
 	listFeasibilityLoad = std::list<bool>(params.ap.nbIterPenaltyManagement, true);
 	listFeasibilityDuration = std::list<bool>(params.ap.nbIterPenaltyManagement, true);
+	listFeasibilityEnergy = std::list<bool>(params.ap.nbIterPenaltyManagement, true);
 	stats.clear(); // Initialize stats vector
 }
 

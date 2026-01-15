@@ -61,6 +61,7 @@ public:
 	/* ADAPTIVE PENALTY COEFFICIENTS */
 	double penaltyCapacity;				// Penalty for one unit of capacity excess (adapted through the search)
 	double penaltyDuration;				// Penalty for one unit of duration excess (adapted through the search)
+	double penaltyEnergy;					// Penalty for one unit of energy excess (ECVRP)
 
 	/* START TIME OF THE ALGORITHM */
 	clock_t startTime;                  // Start time of the optimization (set when Params is constructed)
@@ -72,8 +73,11 @@ public:
 	bool isDurationConstraint ;								// Indicates if the problem includes duration constraints
 	int nbClients ;											// Number of clients (excluding the depot)
 	int nbVehicles ;										// Number of vehicles
+	int nbStations = 0;									// Number of charging stations (ECVRP)
 	double durationLimit;									// Route duration limit
 	double vehicleCapacity;									// Capacity limit
+	double energyCapacity = 0.0;					// Battery capacity (ECVRP)
+	double energyConsumption = 0.0;				// Energy consumption (ECVRP)
 	double totalDemand ;									// Total demand required by the clients
 	double maxDemand;										// Maximum demand of a client
 	double maxDist;											// Maximum distance between two clients
@@ -81,6 +85,7 @@ public:
 	const std::vector< std::vector< double > >& timeCost;	// Distance matrix
 	std::vector< std::vector< int > > correlatedVertices;	// Neighborhood restrictions: For each client, list of nearby customers
 	bool areCoordinatesProvided;                            // Check if valid coordinates are provided
+	std::vector<int> stationIndices;					// Charging station indices (1-based as in file)
 
 	// Initialization from a given data set
 	Params(const std::vector<double>& x_coords,
@@ -91,6 +96,10 @@ public:
 		double vehicleCapacity,
 		double durationLimit,
 		int nbVeh,
+		int nbStations,
+		double energyCapacity,
+		double energyConsumption,
+		const std::vector<int>& stationIndices,
 		bool isDurationConstraint,
 		bool verbose,
 		const AlgorithmParameters& ap);

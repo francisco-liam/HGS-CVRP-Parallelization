@@ -22,7 +22,9 @@ int main(int argc, char *argv[])
 		InstanceCVRPLIB cvrp(commandline.pathInstance, commandline.isRoundingInteger);
 
 		Params params(cvrp.x_coords,cvrp.y_coords,cvrp.dist_mtx,cvrp.service_time,cvrp.demands,
-			          cvrp.vehicleCapacity,cvrp.durationLimit,commandline.nbVeh,cvrp.isDurationConstraint,commandline.verbose,commandline.ap);
+			          cvrp.vehicleCapacity,cvrp.durationLimit,commandline.nbVeh,
+			          cvrp.nbStations,cvrp.energyCapacity,cvrp.energyConsumption,cvrp.stationIndices,
+			          cvrp.isDurationConstraint,commandline.verbose,commandline.ap);
 
 		// Running HGS
 		Genetic solver(params);

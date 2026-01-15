@@ -74,7 +74,8 @@ extern "C" Solution *solve_cvrp(
 			}
 		}
 
-		Params params(x_coords,y_coords,distance_matrix,service_time,demands,vehicleCapacity,durationLimit,max_nbVeh,isDurationConstraint,verbose,*ap);
+		Params params(x_coords,y_coords,distance_matrix,service_time,demands,vehicleCapacity,durationLimit,max_nbVeh,
+				     0,0.0,0.0,std::vector<int>(),isDurationConstraint,verbose,*ap);
 
 		// Running HGS and returning the result
 		Genetic solver(params);
@@ -112,7 +113,8 @@ extern "C" Solution *solve_cvrp_dist_mtx(
 			}
 		}
 
-		Params params(x_coords,y_coords,distance_matrix,service_time,demands,vehicleCapacity,durationLimit,max_nbVeh,isDurationConstraint,verbose,*ap);
+		Params params(x_coords,y_coords,distance_matrix,service_time,demands,vehicleCapacity,durationLimit,max_nbVeh,
+				     0,0.0,0.0,std::vector<int>(),isDurationConstraint,verbose,*ap);
 		
 		// Running HGS and returning the result
 		Genetic solver(params);
