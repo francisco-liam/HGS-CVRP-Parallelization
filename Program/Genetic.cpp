@@ -209,7 +209,7 @@ void Genetic::run()
 		// Record stats for this iteration
 		double minCost = population.getMinFeasibleCost();
 		double avgCost = population.getAverageFeasibleCost();
-		double timeElapsed = (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC;
+		double timeElapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - params.startTime).count();
 		population.addStats(nbIter, minCost, avgCost, timeElapsed);
 	}
 
