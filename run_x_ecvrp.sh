@@ -1,7 +1,5 @@
 cd build || exit
 
-: <<'COMMENT'
-
 for i in {1..10}; do
     ./hgs ../Instances/ECVRP/X-n147-k7-s4.evrp "147-1-$i.sol" -seed "$i" -t 340.8
     sleep 1
@@ -17,28 +15,20 @@ for i in {1..10}; do
     sleep 1
 done
 
-COMMENT
-
 for i in {1..10}; do
     ./hgs ../Instances/ECVRP/X-n469-k26-s10.evrp "469-1-$i.sol" -seed "$i" -t 1099.2
     sleep 1
 done
-
-: <<'COMMENT'
 
 for i in {1..10}; do
     ./hgs ../Instances/ECVRP/X-n577-k30-s4.evrp "577-1-$i.sol" -seed "$i" -t 1372.8
     sleep 1
 done
 
-COMMENT
-
 for i in {1..10}; do
     ./hgs ../Instances/ECVRP/X-n698-k75-s13.evrp "698-1-$i.sol" -seed "$i" -t 1641.6
     sleep 1
 done
-
-: <<'COMMENT'
 
 for i in {1..10}; do
     ./hgs ../Instances/ECVRP/X-n759-k98-s10.evrp "759-1-$i.sol" -seed "$i" -t 1795.2
@@ -59,5 +49,3 @@ for i in {1..10}; do
     ./hgs ../Instances/ECVRP/X-n1006-k43-s5.evrp "1006-1-$i.sol" -seed "$i" -t 2400
     sleep 1
 done
-
-COMMENT
