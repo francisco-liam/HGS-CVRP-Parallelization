@@ -7,6 +7,7 @@
 #include <mutex>
 #include <fstream>
 #include "Genetic.h"
+#include <fstream>
 
 // Global pointer to allow signal handler to set terminateFlag
 static std::atomic<bool>* globalTerminateFlag = nullptr;
@@ -204,6 +205,12 @@ void Genetic::run()
 		if (!exceptionMsgs[i].empty()) {
 			std::cerr << "Exception in worker thread " << i << ": " << exceptionMsgs[i] << std::endl;
 		}
+
+		// Record stats for this iteration
+		double minCost = population.getMinFeasibleCost();
+		double avgCost = population.getAverageFeasibleCost();
+		double timeElapsed = (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC;
+		population.addStats(nbIter, minCost, avgCost, timeElapsed);
 	}
 
 	if (params.verbose) {

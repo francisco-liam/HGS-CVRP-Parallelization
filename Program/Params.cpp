@@ -12,12 +12,17 @@ Params::Params(
 	double vehicleCapacity,
 	double durationLimit,
 	int nbVeh,
+	int nbStations,
+	double energyCapacity,
+	double energyConsumption,
+	const std::vector<int>& stationIndices,
 	bool isDurationConstraint,
 	bool verbose,
 	const AlgorithmParameters& ap
 )
-	: ap(ap), isDurationConstraint(isDurationConstraint), nbVehicles(nbVeh), durationLimit(durationLimit),
-	  vehicleCapacity(vehicleCapacity), timeCost(dist_mtx), verbose(verbose)
+	: ap(ap), isDurationConstraint(isDurationConstraint), nbVehicles(nbVeh), nbStations(nbStations),
+	  durationLimit(durationLimit), vehicleCapacity(vehicleCapacity), energyCapacity(energyCapacity),
+	  energyConsumption(energyConsumption), timeCost(dist_mtx), verbose(verbose), stationIndices(stationIndices)
 {
 	// This marks the starting time of the algorithm
 	startTime = std::chrono::steady_clock::now();
@@ -115,6 +120,7 @@ Params::Params(
 	// A reasonable scale for the initial values of the penalties
 	penaltyDuration = 1;
 	penaltyCapacity = std::max<double>(0.1, std::min<double>(1000., maxDist / maxDemand));
+	penaltyEnergy = penaltyCapacity;
 
 	if (verbose)
 		std::cout << "----- INSTANCE SUCCESSFULLY LOADED WITH " << nbClients << " CLIENTS AND " << nbVehicles << " VEHICLES" << std::endl;

@@ -32,6 +32,7 @@ struct EvalIndiv
 	double distance = 0.;			// Total distance
 	double capacityExcess = 0.;		// Sum of excess load in all routes
 	double durationExcess = 0.;		// Sum of excess duration in all routes
+  double energyExcess = 0.;		// Energy infeasibility indicator (ECVRP)
 	bool isFeasible = false;		// Feasibility status of the individual
 };
 
@@ -42,6 +43,7 @@ public:
   EvalIndiv eval;															// Solution cost parameters
   std::vector < int > chromT ;												// Giant tour representing the individual
   std::vector < std::vector <int> > chromR ;								// For each vehicle, the associated sequence of deliveries (complete solution)
+  std::vector < std::vector <int> > chromRWithChargers ;	// Routes with inserted charging station visits
   std::vector < int > successors ;											// For each node, the successor in the solution (can be the depot 0)
   std::vector < int > predecessors ;										// For each node, the predecessor in the solution (can be the depot 0)
   std::multiset < std::pair < double, Individual* > > indivsPerProximity ;	// The other individuals in the population, ordered by increasing proximity (the set container follows a natural ordering based on the first value of the pair)

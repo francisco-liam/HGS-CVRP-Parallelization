@@ -4,7 +4,7 @@
 #include "Split.h"
 #include "InstanceCVRPLIB.h"
 #include <fstream>
-#include <algorithm>
+#include <tuple>
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -22,17 +22,19 @@ int main(int argc, char *argv[])
 		InstanceCVRPLIB cvrp(commandline.pathInstance, commandline.isRoundingInteger);
 
 		Params params(cvrp.x_coords,cvrp.y_coords,cvrp.dist_mtx,cvrp.service_time,cvrp.demands,
-			          cvrp.vehicleCapacity,cvrp.durationLimit,commandline.nbVeh,cvrp.isDurationConstraint,commandline.verbose,commandline.ap);
+			          cvrp.vehicleCapacity,cvrp.durationLimit,commandline.nbVeh,
+			          cvrp.nbStations,cvrp.energyCapacity,cvrp.energyConsumption,cvrp.stationIndices,
+			          cvrp.isDurationConstraint,commandline.verbose,commandline.ap);
 
 		// Running HGS
 		Genetic solver(params);
 		solver.run();
 		
-		// Exporting the best solution
+		// Exporting the best solution and stats
 		if (solver.population.getBestFound() != NULL)
 		{
 			if (params.verbose) std::cout << "----- WRITING BEST SOLUTION IN : " << commandline.pathSolution << std::endl;
-			solver.population.exportCVRPLibFormat(*solver.population.getBestFound(),commandline.pathSolution);
+			solver.population.exportCVRPLibFormat(*solver.population.getBestFound(), commandline.pathSolution);
 			solver.population.exportSearchProgress(commandline.pathSolution + ".PG.csv", commandline.pathInstance);
 		}
 
@@ -53,7 +55,7 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	catch (const string& e) { std::cout << "EXCEPTION | " << e << std::endl; }
+	catch (const std::string& e) { std::cout << "EXCEPTION | " << e << std::endl; }
 	catch (const std::exception& e) { std::cout << "EXCEPTION | " << e.what() << std::endl; }
 	return 0;
 }
