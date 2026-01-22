@@ -54,8 +54,8 @@ for instance_data in "${instances[@]}"; do
     # Determine per-seed maxIter from 1-thread stats (fallback to default if missing)
     seed_maxIter=$(get_seed_max_iter "$instance_number" "$seed" "$maxIter")
 
-    # Loop through thread counts 2, 4, and 8
-    for threads in 8 16; do
+    # Loop through thread counts 2, 4, 8, and 16
+    for threads in 2 4 8 16; do
       echo "Running instance=$instance seed=$seed threads=$threads maxIter=$seed_maxIter"
       ./hgs "../Instances/CVRP/$instance.vrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"
       sleep 5
