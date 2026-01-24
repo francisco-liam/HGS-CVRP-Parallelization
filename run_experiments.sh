@@ -55,9 +55,13 @@ for instance_data in "${instances[@]}"; do
     seed_maxIter=$(get_seed_max_iter "$instance_number" "$seed" "$maxIter")
 
     # Loop through thread counts 2, 4, 8, and 16
-    for threads in 2 4 8 16; do
+    for threads in 16; do
       echo "Running instance=$instance seed=$seed threads=$threads maxIter=$seed_maxIter"
-      ./hgs "../Instances/CVRP/$instance.vrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"
+      if [[ "$threads" -eq 16 ]]; then
+        taskset -c 0-15 ./hgs "../Instances/CVRP/$instance.vrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"
+      else
+        ./hgs "../Instances/CVRP/$instance.vrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"
+      fi
       sleep 5
     done
   done
