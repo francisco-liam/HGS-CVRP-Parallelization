@@ -11,7 +11,7 @@ def calculate_avg_max_time(base_dir, directories):
         if os.path.exists(dir_path) and os.path.isdir(dir_path):
             print(f"Processing directory: {directory}")  # Report progress
 
-            results[directory] = {"2-threads": None, "4-threads": None, "8-threads": None, "16-threads": None}
+            results[directory] = {"2-threads": None, "4-threads": None, "8-threads": None, "16-threads-1-24": None}
 
             for subdir in os.listdir(dir_path):
                 subdir_path = os.path.join(dir_path, subdir)
@@ -60,17 +60,17 @@ def write_results_to_file(results, output_file):
         return f"{val:.2f}" if val is not None else "N/A"
 
     with open(output_file, "w") as f:
-        f.write("Subdirectory\t2-threads\t4-threads\t8-threads\t16-threads\n")
+        f.write("Subdirectory\t2-threads\t4-threads\t8-threads\t16-threads-1-24\n")
         for directory, subdir_results in results.items():
             two = fmt(subdir_results.get('2-threads'))
             four = fmt(subdir_results.get('4-threads'))
             eight = fmt(subdir_results.get('8-threads'))
-            sixteen = fmt(subdir_results.get('16-threads'))
+            sixteen = fmt(subdir_results.get('16-threads-1-24'))
             f.write(f"{directory}\t{two}\t{four}\t{eight}\t{sixteen}\n")
 
 def write_results_to_csv(results, output_file_csv):
     import csv as _csv
-    header = ["Subdirectory", "2-threads", "4-threads", "8-threads", "16-threads"]
+    header = ["Subdirectory", "2-threads", "4-threads", "8-threads", "16-threads-1-24"]
 
     def fmt_number(val):
         return f"{val:.2f}" if val is not None else ""
@@ -84,7 +84,7 @@ def write_results_to_csv(results, output_file_csv):
                 fmt_number(subdir_results.get("2-threads")),
                 fmt_number(subdir_results.get("4-threads")),
                 fmt_number(subdir_results.get("8-threads")),
-                fmt_number(subdir_results.get("16-threads")),
+                fmt_number(subdir_results.get("16-threads-1-24")),
             ]
             writer.writerow(row)
 
@@ -96,11 +96,11 @@ directories = ["n106", "n289", "n359", "n491", "n573", "n627", "n783", "n895", "
 results = calculate_avg_max_time(base_dir, directories)
 
 # Write the results to a .txt file
-output_file = os.path.join(base_dir, "speedup_results.txt")
+output_file = os.path.join(base_dir, "speedup_results_new.txt")
 write_results_to_file(results, output_file)
 
 # Also write a CSV for easy pasting into Google Slides/Sheets
-output_file_csv = os.path.join(base_dir, "speedup_results.csv")
+output_file_csv = os.path.join(base_dir, "speedup_results_new.csv")
 write_results_to_csv(results, output_file_csv)
 
 print(f"Speedup results written to {output_file} and {output_file_csv}")

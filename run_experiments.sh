@@ -58,6 +58,7 @@ for instance_data in "${instances[@]}"; do
     for threads in 16; do
       echo "Running instance=$instance seed=$seed threads=$threads maxIter=$seed_maxIter"
       if [[ "$threads" -eq 16 ]]; then
+        echo "Using taskset to bind to cores 0-15"
         taskset -c 0-15 ./hgs "../Instances/CVRP/$instance.vrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"
       else
         ./hgs "../Instances/CVRP/$instance.vrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"

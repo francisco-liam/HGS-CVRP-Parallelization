@@ -14,7 +14,7 @@ for file_name in os.listdir(base_dir):
         # Ensure the file name matches the expected pattern X-Y-
         if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
             x_dir = f"n{parts[0]}"  # Corresponding X directory
-            y_threads = f"{parts[1]}-threads"  # Corresponding Y-threads subdirectory
+            y_threads = f"{parts[1]}-threads-1-24"  # Corresponding Y-threads subdirectory
 
             # Construct the full path for the X directory
             x_dir_path = os.path.join(base_dir, x_dir)
