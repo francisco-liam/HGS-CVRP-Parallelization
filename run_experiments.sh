@@ -2,16 +2,16 @@
 
 # List of instances and their corresponding maxIter values
 instances=(
-  "X-n106-k14 331255"
-  "X-n289-k60 376543"
-  "X-n359-k29 330907"
-  "X-n491-k59 479553"
-  "X-n573-k30 181178"
-  "X-n627-k43 230672"
-  "X-n783-k48 268353"
-  "X-n895-k37 237589"
-  "X-n936-k151 321974"
-  "X-n1001-k43 202652"
+  "X-n147-k7-s4 331255"
+  "X-n221-k11-s7 376543"
+  "X-n360-k40-s9 330907"
+  "X-n469-k26-s10 479553"
+  "X-n577-k30-s4 181178"
+  "X-n698-k75-s13 230672"
+  "X-n759-k98-s10 268353"
+  "X-n830-k171-s11 237589"
+  "X-n920-k207-s4 321974"
+  "X-n1006-k43-s5 202652"
 )
 
 # Return per-seed maxIter based on 1-thread stats CSV line count (excluding header).
@@ -21,9 +21,9 @@ get_seed_max_iter() {
   local seed="$2"              # e.g., 7
   local default_max_iter="$3"  # fallback value
 
-  # Stats CSV expected at project_root/Experiments/n<instance_number>/1-thread/n<instance_number>-1-<seed>.sol_stats.csv
+  # Stats CSV expected at project_root/Experiments/n<instance_number>/1-threads/<instance_number>-1-<seed>.sol_stats.csv
   # We run from build/, so go up one level to project root, then into Experiments/.
-  local stats_file="../Experiments/n${instance_number}/1-thread/n${instance_number}-1-${seed}.sol_stats.csv"
+  local stats_file="../Experiments/n${instance_number}/1-threads/${instance_number}-1-${seed}.sol_stats.csv"
   if [[ -f "$stats_file" ]]; then
     # Count non-empty data lines excluding the first header line
     local count
@@ -55,9 +55,9 @@ for instance_data in "${instances[@]}"; do
     seed_maxIter=$(get_seed_max_iter "$instance_number" "$seed" "$maxIter")
 
     # Loop through thread counts 2, 4, and 8
-    for threads in 8 16; do
+    for threads in 2 4 8 16; do
       echo "Running instance=$instance seed=$seed threads=$threads maxIter=$seed_maxIter"
-      ./hgs "../Instances/CVRP/$instance.vrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"
+      taskset -c 0-15 ./hgs "../Instances/ECVRP/$instance.evrp" "${instance_number}-${threads}-${seed}.sol" -seed "$seed" -maxIter "$seed_maxIter" -threads "$threads"
       sleep 5
     done
   done
