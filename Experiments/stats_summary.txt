@@ -1,0 +1,33 @@
+Stats CSV Summary
+Root scanned: /home/liamf/HGS-CVRP-Parallelization/Experiments
+
+Directory: n1006
+  Files found: 0
+
+Directory: n147
+  Files found: 0
+
+Directory: n221
+  Files found: 0
+
+Directory: n360
+  Files found: 0
+
+Directory: n469
+  Files found: 0
+
+Directory: n577
+  Files found: 0
+
+Directory: n698
+  Files found: 0
+
+Directory: n759
+  Files found: 0
+
+Directory: n830
+  Files found: 0
+
+Directory: n920
+  Files found: 0
+

@@ -1,0 +1,71 @@
+Average Cost per Subdirectory
+Directory: n147
+  1-threads: files=10, avg_cost=15882.00
+  16-threads: files=10, avg_cost=15882.00
+  2-threads: files=10, avg_cost=15880.70
+  4-threads: files=10, avg_cost=15882.00
+  8-threads: files=10, avg_cost=15882.00
+
+Directory: n221
+  1-threads: files=10, avg_cost=10963.80
+  16-threads: files=10, avg_cost=10960.20
+  2-threads: files=10, avg_cost=10959.20
+  4-threads: files=10, avg_cost=10955.80
+  8-threads: files=10, avg_cost=10962.80
+
+Directory: n360
+  1-threads: files=10, avg_cost=26147.90
+  16-threads: files=10, avg_cost=26134.70
+  2-threads: files=10, avg_cost=26150.10
+  4-threads: files=10, avg_cost=26134.40
+  8-threads: files=10, avg_cost=26133.10
+
+Directory: n469
+  1-threads: files=10, avg_cost=24560.60
+  16-threads: files=10, avg_cost=24560.20
+  2-threads: files=10, avg_cost=24558.80
+  4-threads: files=10, avg_cost=24541.10
+  8-threads: files=10, avg_cost=24561.90
+
+Directory: n577
+  1-threads: files=10, avg_cost=51102.40
+  16-threads: files=10, avg_cost=51084.20
+  2-threads: files=10, avg_cost=51095.20
+  4-threads: files=10, avg_cost=51068.30
+  8-threads: files=10, avg_cost=51078.70
+
+Directory: n698
+  1-threads: files=10, avg_cost=69374.90
+  16-threads: files=10, avg_cost=69336.80
+  2-threads: files=10, avg_cost=69397.50
+  4-threads: files=10, avg_cost=69358.70
+  8-threads: files=10, avg_cost=69385.10
+
+Directory: n759
+  1-threads: files=10, avg_cost=78606.00
+  16-threads: files=10, avg_cost=78572.80
+  2-threads: files=10, avg_cost=78560.20
+  4-threads: files=10, avg_cost=78621.40
+  8-threads: files=10, avg_cost=78630.00
+
+Directory: n830
+  1-threads: files=10, avg_cost=159813.50
+  16-threads: files=10, avg_cost=159903.50
+  2-threads: files=10, avg_cost=159849.60
+  4-threads: files=10, avg_cost=159828.40
+  8-threads: files=10, avg_cost=159781.60
+
+Directory: n920
+  1-threads: files=10, avg_cost=332442.20
+  16-threads: files=10, avg_cost=332413.90
+  2-threads: files=10, avg_cost=332373.00
+  4-threads: files=10, avg_cost=332393.00
+  8-threads: files=10, avg_cost=332413.70
+
+Directory: n1006
+  1-threads: files=10, avg_cost=73750.50
+  16-threads: files=10, avg_cost=73888.80
+  2-threads: files=10, avg_cost=73802.70
+  4-threads: files=10, avg_cost=73727.30
+  8-threads: files=10, avg_cost=73851.50
+
