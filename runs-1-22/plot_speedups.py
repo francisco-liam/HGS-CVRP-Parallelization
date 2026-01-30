@@ -94,7 +94,7 @@ def plot_grid(threads: list[int], data: dict[str, list[float]], outdir: str):
     for ax in axes:
         ax.set_xlabel("Threads")
         ax.set_ylabel("Speedup")
-    fig.suptitle("Speedup vs Threads For HGS on ECVRP", fontsize=12)
+    fig.suptitle("Speedup vs Threads For HGS-CVRP", fontsize=12)
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     grid_path = os.path.join(outdir, "speedup_all_instances.png")
     fig.savefig(grid_path, dpi=150)
@@ -128,7 +128,7 @@ def main():
         color = color_cycle[idx % len(color_cycle)] if color_cycle else None
         plt.plot(threads, speedups, marker="o", linewidth=2, label=instance, color=color)
     plt.grid(True, linestyle="--", alpha=0.5)
-    plt.title("Speedup vs Threads For HGS on ECVRP")
+    plt.title("Speedup vs Threads For HGS-CVRP")
     plt.xlabel("Threads")
     plt.ylabel("Speedup")
     plt.xticks(threads)
